@@ -45,7 +45,7 @@
         });
 
         // "neon green blue"
-        heatmap = new google.maps.visualization.HeatmapLayer({
+        neonmap = new google.maps.visualization.HeatmapLayer({
           data: heatMapData,
           dissipating: true, // allows a global/national look
           radius: 12,
@@ -74,12 +74,12 @@
       };
 
       function toggleNeon() {
-        heatmap.setMap(map);
+        neonmap.setMap(map);
         fogmap.setMap(null);
       }
 
       function toggleFog() {
-        heatmap.setMap(null);
+        neonmap.setMap(null);
         fogmap.setMap(map);
       }
 
