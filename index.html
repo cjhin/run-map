@@ -24,7 +24,7 @@
     <script src="https://maps.googleapis.com/maps/api/js?libraries=visualization&sensor=true_or_false"></script>
     <script>
 
-      var heatmap = undefined;
+      var neonmap = undefined;
       var fogmap = undefined;
 
       var loadRunData = function() {
@@ -80,6 +80,9 @@
 
         var dataUrl = "./data/all.gpx";
         var client = new XMLHttpRequest();
+        // for some reason my server thinks this is a cross-domain request?
+        // the easy hack fix is to override the MimeType
+        client.overrideMimeType('text/xml');
         client.onload = handler;
         client.open("GET", dataUrl);
         client.send();
