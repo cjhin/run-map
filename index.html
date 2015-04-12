@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Run Map</title>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="utf-8">
+    <style>
+      html, body, #map-canvas {
+        height: 100%;
+        margin: 0px;
+        padding: 0px
+      }
+      #panel {
+        position: absolute;
+        top: 5px;
+        left: 50%;
+        margin-left: -180px;
+        z-index: 5;
+        background-color: #fff;
+        padding: 5px;
+        border: 1px solid #999;
+      }
+    </style>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?libraries=visualization&sensor=true_or_false"></script>
+    <script>
+
+      var heatMapData = [];
+      var heatmap = undefined;
+      var fogmap = undefined;
+
+      var loadRunData = function() {
+
+        // parse data file, pull out all data points and add lat/lon data to heatMapData array
+        // there's probably a better way to do this that doesn't require both
+        // d3 AND jquery...
+        d3.xml('./data/all.gpx', function(err, data) {
+          console.log(data);
+          var points = $(data).find("trkpt");
+          for(var i=0; i< points.length; i++) {
+            point = $(points[i]);
+            heatMapData.push(new google.maps.LatLng(point.attr('lat'), point.attr('lon')));
+          }
+        });
+
+        // "neon green blue"
+        heatmap = new google.maps.visualization.HeatmapLayer({
+          data: heatMapData,
+          dissipating: true, // allows a global/national look
+          radius: 12,
+          opacity: 1,
+          gradient: [
+            'rgba(57,255,20,0.0)', // background color should be clear
+            'rgba(57,255,20,0.6)', // neon green
+            'rgba(57,20,255,0.6)'  // neon blue
+          ]
+        });
+
+        // "fog of war"
+        fogmap = new google.maps.visualization.HeatmapLayer({
+          data: heatMapData,
+          dissipating: false,
+          radius: 0.00055,
+          opacity: 1,
+          gradient: [
+            'rgba(0,0,0,0.95)', // background color almost black "fog"
+            'rgba(255,255,255,0.0)'  // clear
+          ]
+        });
+
+        // default to neon
+        toggleNeon()
+      };
+
+      function toggleNeon() {
+        heatmap.setMap(map);
+        fogmap.setMap(null);
+      }
+
+      function toggleFog() {
+        heatmap.setMap(null);
+        fogmap.setMap(map);
+      }
+
+      // create map, and call loadRunData which loads the data and generates the heatmap
+      var map;
+      function initialize() {
+        var mapOptions = {
+          zoom: 17,
+          center: new google.maps.LatLng(41.917, -87.640)
+        };
+        map = new google.maps.Map(document.getElementById('map-canvas'), mapOptions);
+
+        // modified from https://snazzymaps.com/style/38/shades-of-grey
+        var map_style_dark_grey = [
+          // ridiculous hack to turn off the 3d buildings, basically just turn everything off and
+          // then turn on individual layers one by one
+          // http://stackoverflow.com/questions/21416261/remove-indoor-maps-from-styled-google-maps
+          {"stylers": [ {"visibility": "off" } ] },
+          //
+          {"featureType":"all","elementType":"labels.text.fill","stylers":[{"visibility":"on"},{"saturation":36},{"color":"#000000"},{"lightness":40}]},
+          {"featureType":"all","elementType":"labels.text.stroke","stylers":[{"visibility":"on"},{"color":"#000000"},{"lightness":16}]},
+          {"featureType":"administrative","elementType":"geometry.fill","stylers":[{"visibility":"on"},{"color":"#000000"},{"lightness":20}]},
+          {"featureType":"administrative","elementType":"geometry.stroke","stylers":[{"visibility":"on"},{"color":"#000000"},{"lightness":17},{"weight":1.2}]},
+          {"featureType":"landscape.natural","elementType":"geometry","stylers":[{"visibility":"on"},{"color":"#000000"},{"lightness":23}]},
+          {"featureType":"poi","elementType":"geometry","stylers":[{"visibility":"on"},{"color":"#000000"},{"lightness":21}]},
+          {"featureType":"road.highway","elementType":"geometry.fill","stylers":[{"visibility":"on"},{"color":"#000000"},{"lightness":17}]},
+          {"featureType":"road.highway","elementType":"geometry.stroke","stylers":[{"visibility":"on"},{"color":"#000000"},{"lightness":29},{"weight":0.2}]},
+          {"featureType":"road.arterial","elementType":"geometry","stylers":[{"visibility":"on"},{"color":"#000000"},{"lightness":18}]},
+          {"featureType":"road.local","elementType":"geometry","stylers":[{"visibility":"on"},{"color":"#000000"},{"lightness":16}]},
+          {"featureType":"transit","elementType":"geometry","stylers":[{"visibility":"on"},{"color":"#000000"},{"lightness":19}]},
+          {"featureType":"water","elementType":"geometry","stylers":[{"visibility":"on"},{"color":"#000000"},{"lightness":17}]}
+        ];
+        map.setOptions({styles: map_style_dark_grey});
+
+        loadRunData();
+      }
+
+      google.maps.event.addDomListener(window, 'load', initialize);
+    </script>
+  </head>
+  <body>
+    <div id='panel'>
+      <button onclick="toggleNeon()">Neon</button>
+      <button onclick="toggleFog()">Fog</button>
+    </div>
+    <div id="map-canvas"></div>
+  </body>
+</html>
