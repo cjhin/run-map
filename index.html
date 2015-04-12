@@ -42,6 +42,7 @@
           neonmap = new google.maps.visualization.HeatmapLayer({
             data: heatMapData,
             dissipating: true, // allows a global/national look
+            maxIntensity: 1,
             radius: 12,
             opacity: 1,
             gradient: [
@@ -55,6 +56,7 @@
           fogmap = new google.maps.visualization.HeatmapLayer({
             data: heatMapData,
             dissipating: false,
+            maxIntensity: 1,
             radius: 0.00055,
             opacity: 1,
             gradient: [
