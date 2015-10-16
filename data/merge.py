@@ -4,6 +4,7 @@
 # and merge them into one large file
 
 import os
+import re
 
 path = "./"
 dirs = os.listdir( path )
@@ -22,7 +23,8 @@ for file in dirs:
             line = f.readline()
             # only write the <trkpt tags
             if line.startswith('<trkpt'):
-                output.write(line)
+                new_line = re.sub(r'(?is)<ele>.+</time>', '', line)
+                output.write(new_line)
 
             # end of file
             if len(line) < 2:
